@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/currycan/supkube/pkg/logger"
+	"github.com/currycan/kube-certs/pkg/logger"
 )
 
 func CMD(altNames []string, hostIP, hostName, serviceCIRD, DNSDomain string) string {
-	cmd := "supkube cert "
+	cmd := "kube-certs cert "
 	if hostIP != "" {
 		cmd += fmt.Sprintf(" --node-ip %s", hostIP)
 	}

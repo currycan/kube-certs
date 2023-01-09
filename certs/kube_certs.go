@@ -8,11 +8,11 @@ import (
 	"os"
 	"path"
 
-	"github.com/currycan/supkube/pkg/logger"
+	"github.com/currycan/kube-certs/pkg/logger"
 )
 
 var (
-	ConfigDir               = GetUserHomeDir() + "/.supkube"
+	ConfigDir               = GetUserHomeDir() + "/.kube-certs"
 	KubernetesDir           = "/etc/kubernetes"
 	KubeDefaultCertPath     = "/etc/kubernetes/pki"
 	kubeDefaultCertEtcdPath = "/etc/kubernetes/pki/etcd"
