@@ -174,7 +174,10 @@ func NewSignedCert(cfg Config, key crypto.Signer, caCert *x509.Certificate, caKe
 	var ips []net.IP
 
 	for _, v := range cfg.AltNames.DNSNames {
-		dnsNames = append(dnsNames, v)
+		ip := net.ParseIP(v)
+		if ip == nil {
+			dnsNames = append(dnsNames, v)
+		}
 	}
 	for _, v := range cfg.AltNames.IPs {
 		ips = append(ips, v)

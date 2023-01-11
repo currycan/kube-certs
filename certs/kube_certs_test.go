@@ -17,7 +17,7 @@ func TestGenerateAll(t *testing.T) {
 		},
 	}
 
-	certMeta, err := NewCertMetaData(BasePath, EtcdBasePath, []string{"k8s.local", "10.88.88.88"}, "172.31.0.0/16", "master1", "10.88.88.1", "cluster.local", []string{"etcd.local", "10.88.88.99"})
+	certMeta, err := NewCertMetaData(BasePath, EtcdBasePath, []string{"k8s.local", "10.88.88.88"}, "172.31.0.0/16", "1.1.1.1", "10.88.88.1", "cluster.local", []string{"etcd.local", "10.88.88.99"})
 	if err != nil {
 		t.Error(err)
 	}

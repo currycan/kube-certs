@@ -252,7 +252,10 @@ func (meta *CertMetaData) apiServerNameAndIP(certList *[]Config) {
 
 	svcDNS := fmt.Sprintf("kubernetes.default.svc.%s", meta.DNSDomain)
 	(*certList)[APIserverCert].AltNames.DNSNames[svcDNS] = svcDNS
-	(*certList)[APIserverCert].AltNames.DNSNames[meta.NodeName] = meta.NodeName
+	ip := net.ParseIP(meta.NodeName)
+	if ip == nil {
+		(*certList)[APIserverCert].AltNames.DNSNames[meta.NodeName] = meta.NodeName
+	}
 
 	for _, ip := range meta.APIServer.IPs {
 		(*certList)[APIserverCert].AltNames.IPs[ip.String()] = ip
@@ -263,6 +266,10 @@ func (meta *CertMetaData) apiServerNameAndIP(certList *[]Config) {
 func (meta *CertMetaData) etcdServerNameAndIP(certList *[]Config) {
 	for _, etcdDns := range meta.EtcdServer.DNSNames {
 		(*certList)[EtcdServerCert].AltNames.DNSNames[etcdDns] = etcdDns
+		ip := net.ParseIP(meta.NodeName)
+		if ip == nil {
+			(*certList)[APIserverCert].AltNames.DNSNames[meta.NodeName] = meta.NodeName
+		}
 		(*certList)[EtcdPeerCert].AltNames.DNSNames[etcdDns] = etcdDns
 	}
 
