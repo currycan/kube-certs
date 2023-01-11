@@ -4,19 +4,30 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	cert "github.com/currycan/kube-certs/certs"
+	"os"
+
+	"github.com/currycan/kube-certs/certs"
+	"github.com/currycan/kube-certs/pkg/logger"
 
 	"github.com/spf13/cobra"
+	"k8s.io/client-go/util/cert"
 )
 
 type Flag struct {
-	AltNames     []string
-	NodeName     string
-	ServiceCIDR  string
-	NodeIP       string
-	DNSDomain    string
-	CertPath     string
-	CertEtcdPath string
+	AltNames             []string
+	AltIPs               []string
+	NodeName             string
+	ServiceCIDR          string
+	NodeIP               string
+	DNSDomain            string
+	CertPath             string
+	EtcdAltNames         []string
+	EtcdAltIPs           []string
+	CertEtcdPath         string
+	KubeConfigPath       string
+	CertConfig           cert.Config
+	ControlPlaneEndpoint string
+	ClusterName          string
 }
 
 var config *Flag
@@ -27,7 +38,16 @@ var certsCmd = &cobra.Command{
 	Short: "generate kubernetes certs",
 	Long:  `generate kubernetes certs: etcd and kubernetes component, expire time can be specified`,
 	Run: func(cmd *cobra.Command, args []string) {
-		cert.GenerateCert(config.CertPath, config.CertEtcdPath, config.AltNames, config.NodeIP, config.NodeName, config.ServiceCIDR, config.DNSDomain)
+		certConfig := certs.Config{
+			Path:     config.CertPath,
+			BaseName: "ca",
+		}
+		certs.GenerateCert(config.CertPath, config.CertEtcdPath, config.AltNames, config.AltIPs, config.NodeIP, config.NodeName, config.ServiceCIDR, config.DNSDomain, config.EtcdAltNames, config.EtcdAltIPs)
+		err := certs.CreateJoinControlPlaneKubeConfigFiles(config.KubeConfigPath, certConfig, config.NodeName, config.ControlPlaneEndpoint, config.ClusterName)
+		if err != nil {
+			logger.Error("generator kubeconfig failed %s", err)
+			os.Exit(-1)
+		}
 	},
 }
 
@@ -35,13 +55,24 @@ func init() {
 	config = &Flag{}
 	rootCmd.AddCommand(certsCmd)
 
-	certsCmd.Flags().StringSliceVar(&config.AltNames, "alt-names", []string{}, "like example.com or 10.88.88.88")
-	certsCmd.Flags().StringVar(&config.NodeName, "node-name", "", "like master0")
-	certsCmd.Flags().StringVar(&config.ServiceCIDR, "service-cidr", "", "like 10.88.88.0/24")
+	// kubernetes certs
+	certsCmd.Flags().StringVar(&config.NodeName, "node-name", "", "like master0 or 10.88.88.1")
 	certsCmd.Flags().StringVar(&config.NodeIP, "node-ip", "", "like 10.88.88.1")
+	certsCmd.Flags().StringVar(&config.ServiceCIDR, "service-cidr", "", "like 172.31.0.0/16")
 	certsCmd.Flags().StringVar(&config.DNSDomain, "dns-domain", "cluster.local", "cluster dns domain")
+	certsCmd.Flags().StringSliceVar(&config.AltNames, "apiserver-alt-names", []string{}, "like example.com")
+	certsCmd.Flags().StringSliceVar(&config.AltIPs, "apiserver-alt-ips", []string{}, "like 10.88.88.88")
 	certsCmd.Flags().StringVar(&config.CertPath, "cert-path", "/etc/kubernetes/pki", "kubernetes cert file path")
+
+	// etcd certs
+	certsCmd.Flags().StringSliceVar(&config.EtcdAltNames, "etcd-alt-names", []string{}, "like example.com")
+	certsCmd.Flags().StringSliceVar(&config.EtcdAltIPs, "etcd-alt-ips", []string{}, "like 10.88.88.88")
 	certsCmd.Flags().StringVar(&config.CertEtcdPath, "cert-etcd-path", "/etc/kubernetes/pki/etcd", "kubernetes etcd cert file path")
+
+	// kubernetes kubeconfig
+	certsCmd.Flags().StringVar(&config.KubeConfigPath, "kube-config-path", "/etc/kubernetes/", "kubernetes kubeconfig files path")
+	certsCmd.Flags().StringVar(&config.ControlPlaneEndpoint, "control-plane-endpoint", "", "like https://apiserver.k8s.local:6443")
+	certsCmd.Flags().StringVar(&config.ClusterName, "cluster-name", "kubernetes", "kubernetes cluster name")
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command

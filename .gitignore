@@ -14,6 +14,5 @@ tools
 coverage.out
 tmp
 **/.DS_Store
-
-
-config,yaml
+etc
+kube-certs

@@ -35,8 +35,8 @@ func CMD(altNames []string, hostIP, hostName, serviceCIRD, DNSDomain string) str
 }
 
 // GenerateCert generate all cert.
-func GenerateCert(certPATH, certEtcdPATH string, altNames []string, hostIP, hostName, serviceCIRD, DNSDomain string) {
-	certConfig, err := NewCertMetaData(certPATH, certEtcdPATH, altNames, serviceCIRD, hostName, hostIP, DNSDomain)
+func GenerateCert(certPATH, certEtcdPATH string, apiServerDomains, apiServerIPs []string, hostIP, hostName, serviceCIRD, DNSDomain string, etcdServerDomains, etcdServerIPs []string) {
+	certConfig, err := NewCertMetaData(certPATH, certEtcdPATH, apiServerDomains, apiServerIPs, serviceCIRD, hostName, hostIP, DNSDomain, etcdServerDomains, etcdServerIPs)
 	if err != nil {
 		logger.Error("generator cert config failed %s", err)
 		os.Exit(-1)

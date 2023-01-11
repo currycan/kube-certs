@@ -33,20 +33,22 @@ func CaList(CertPath, CertEtcdPath string) []Config {
 			Path:         CertPath,
 			DefaultPath:  KubeDefaultCertPath,
 			BaseName:     "ca",
-			CommonName:   "kubernetes",
+			CommonName:   "kubernetes-ca",
 			Organization: nil,
 			Year:         100,
 			AltNames:     AltNames{},
+			AltIPs:       AltIPs{},
 			Usages:       nil,
 		},
 		{
 			Path:         CertPath,
 			DefaultPath:  KubeDefaultCertPath,
 			BaseName:     "front-proxy-ca",
-			CommonName:   "front-proxy-ca",
+			CommonName:   "kubernetes-front-proxy-ca",
 			Organization: nil,
 			Year:         100,
 			AltNames:     AltNames{},
+			AltIPs:       AltIPs{},
 			Usages:       nil,
 		},
 		{
@@ -57,6 +59,7 @@ func CaList(CertPath, CertEtcdPath string) []Config {
 			Organization: nil,
 			Year:         100,
 			AltNames:     AltNames{},
+			AltIPs:       AltIPs{},
 			Usages:       nil,
 		},
 	}
@@ -68,7 +71,7 @@ func List(CertPath, CertEtcdPath string) []Config {
 			Path:         CertPath,
 			DefaultPath:  KubeDefaultCertPath,
 			BaseName:     "apiserver",
-			CAName:       "kubernetes",
+			CAName:       "kubernetes-ca",
 			CommonName:   "kube-apiserver",
 			Organization: nil,
 			Year:         100,
@@ -79,6 +82,8 @@ func List(CertPath, CertEtcdPath string) []Config {
 					"kubernetes.default":     "kubernetes.default",
 					"kubernetes.default.svc": "kubernetes.default.svc",
 				},
+			},
+			AltIPs: AltIPs{
 				IPs: map[string]net.IP{
 					"127.0.0.1": net.IPv4(127, 0, 0, 1),
 				},
@@ -89,22 +94,24 @@ func List(CertPath, CertEtcdPath string) []Config {
 			Path:         CertPath,
 			DefaultPath:  KubeDefaultCertPath,
 			BaseName:     "apiserver-kubelet-client",
-			CAName:       "kubernetes",
+			CAName:       "kubernetes-ca",
 			CommonName:   "kube-apiserver-kubelet-client",
 			Organization: []string{"system:masters"},
 			Year:         100,
 			AltNames:     AltNames{},
+			AltIPs:       AltIPs{},
 			Usages:       []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 		},
 		{
 			Path:         CertPath,
 			DefaultPath:  KubeDefaultCertPath,
 			BaseName:     "front-proxy-client",
-			CAName:       "front-proxy-ca",
+			CAName:       "kubernetes-front-proxy-ca",
 			CommonName:   "front-proxy-client",
 			Organization: nil,
 			Year:         100,
 			AltNames:     AltNames{},
+			AltIPs:       AltIPs{},
 			Usages:       []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 		},
 		{
@@ -116,6 +123,7 @@ func List(CertPath, CertEtcdPath string) []Config {
 			Organization: []string{"system:masters"},
 			Year:         100,
 			AltNames:     AltNames{},
+			AltIPs:       AltIPs{},
 			Usages:       []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 		},
 		{
@@ -123,22 +131,44 @@ func List(CertPath, CertEtcdPath string) []Config {
 			DefaultPath:  kubeDefaultCertEtcdPath,
 			BaseName:     "server",
 			CAName:       "etcd-ca",
-			CommonName:   "etcd", // kubeadm using node name as common name cc.CommonName = mc.NodeRegistration.Name
+			CommonName:   "kube-etcd", // kubeadm using node name as common name cc.CommonName = mc.NodeRegistration.Name
 			Organization: nil,
 			Year:         100,
-			AltNames:     AltNames{}, // need set altNames
-			Usages:       []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
+			AltNames: AltNames{
+				DNSNames: map[string]string{
+					"localhost": "localhost",
+				},
+			},
+			AltIPs: AltIPs{
+				IPs: map[string]net.IP{
+					"127.0.0.1":                     net.IPv4(127, 0, 0, 1),
+					net.IPv4(127, 0, 0, 1).String(): net.IPv4(127, 0, 0, 1),
+					net.IPv6loopback.String():       net.IPv6loopback,
+				},
+			},
+			Usages: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
 		},
 		{
 			Path:         CertEtcdPath,
 			DefaultPath:  kubeDefaultCertEtcdPath,
 			BaseName:     "peer",
 			CAName:       "etcd-ca",
-			CommonName:   "etcd-peer", // change this in filter
+			CommonName:   "kube-etcd-peer", // change this in filter
 			Organization: nil,
 			Year:         100,
-			AltNames:     AltNames{}, // change this in filter
-			Usages:       []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
+			AltNames: AltNames{
+				DNSNames: map[string]string{
+					"localhost": "localhost",
+				},
+			},
+			AltIPs: AltIPs{
+				IPs: map[string]net.IP{
+					"127.0.0.1":                     net.IPv4(127, 0, 0, 1),
+					net.IPv4(127, 0, 0, 1).String(): net.IPv4(127, 0, 0, 1),
+					net.IPv6loopback.String():       net.IPv6loopback,
+				},
+			},
+			Usages: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
 		},
 		{
 			Path:         CertEtcdPath,
@@ -149,6 +179,7 @@ func List(CertPath, CertEtcdPath string) []Config {
 			Organization: []string{"system:masters"},
 			Year:         100,
 			AltNames:     AltNames{},
+			AltIPs:       AltIPs{},
 			Usages:       []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 		},
 	}
@@ -156,10 +187,15 @@ func List(CertPath, CertEtcdPath string) []Config {
 
 // 证书中需要用到的一些信息,传入的参数得提前验证
 type CertMetaData struct {
-	APIServer AltNames
 	NodeName  string
 	NodeIP    string
 	DNSDomain string
+	//kubernetes证书配置
+	APIServerNames AltNames
+	APIServerIPs   AltIPs
+	//etcd证书配置
+	EtcdServerNames AltNames
+	EtcdServerIPs   AltIPs
 	//证书生成的位置
 	CertPath     string
 	CertEtcdPath string
@@ -176,39 +212,60 @@ const (
 )
 
 // apiServerIPAndDomains = MasterIP + VIP + CertSANS 暂时只有apiserver, 记得把cluster.local后缀加到apiServerIPAndDOmas里先
-func NewCertMetaData(certPATH, certEtcdPATH string, apiServerIPAndDomains []string, SvcCIDR, nodeName, nodeIP, DNSDomain string) (*CertMetaData, error) {
+func NewCertMetaData(certPATH, certEtcdPATH string, apiServerDomains, apiServerIPs []string, SvcCIDR, nodeName, nodeIP, DNSDomain string, etcdServerDomains, etcdServerIPs []string) (*CertMetaData, error) {
 	data := &CertMetaData{}
 	data.CertPath = certPATH
 	data.CertEtcdPath = certEtcdPATH
 	data.DNSDomain = DNSDomain
-	data.APIServer.IPs = make(map[string]net.IP)
-	data.APIServer.DNSNames = make(map[string]string)
+	data.APIServerIPs.IPs = make(map[string]net.IP)
+	data.APIServerNames.DNSNames = make(map[string]string)
 	svcFirstIP, _, err := net.ParseCIDR(SvcCIDR)
 	if err != nil {
 		return nil, err
 	}
 	svcFirstIP[len(svcFirstIP)-1]++ //取svc第一个ip
-	data.APIServer.IPs[svcFirstIP.String()] = svcFirstIP
+	data.APIServerIPs.IPs[svcFirstIP.String()] = svcFirstIP
 
-	for _, altName := range apiServerIPAndDomains {
-		ip := net.ParseIP(altName)
+	data.EtcdServerNames.DNSNames = make(map[string]string)
+	data.EtcdServerIPs.IPs = make(map[string]net.IP)
+
+	//kubernetes
+	for _, altName := range apiServerDomains {
+		data.APIServerNames.DNSNames[altName] = altName
+	}
+	for _, altIP := range apiServerIPs {
+		ip := net.ParseIP(altIP)
 		if ip != nil {
-			data.APIServer.IPs[ip.String()] = ip
+			data.APIServerIPs.IPs[ip.String()] = ip
 			continue
 		}
-		data.APIServer.DNSNames[altName] = altName
 	}
+
+	//etcd
+	for _, etcdAltName := range etcdServerDomains {
+		data.EtcdServerNames.DNSNames[etcdAltName] = etcdAltName
+	}
+	for _, etcdAltIP := range etcdServerIPs {
+		ip := net.ParseIP(etcdAltIP)
+		if ip != nil {
+			data.EtcdServerIPs.IPs[ip.String()] = ip
+			continue
+		}
+	}
+
 	if ip := net.ParseIP(nodeIP); ip != nil {
-		data.APIServer.IPs[ip.String()] = ip
+		data.APIServerIPs.IPs[ip.String()] = ip
+		data.EtcdServerIPs.IPs[ip.String()] = ip
 	}
 
 	data.NodeIP = nodeIP
 	data.NodeName = nodeName
+
 	return data, nil
 }
 
-func (meta *CertMetaData) apiServerAltName(certList *[]Config) {
-	for _, dns := range meta.APIServer.DNSNames {
+func (meta *CertMetaData) apiServerNameAndIP(certList *[]Config) {
+	for _, dns := range meta.APIServerNames.DNSNames {
 		(*certList)[APIserverCert].AltNames.DNSNames[dns] = dns
 	}
 
@@ -216,30 +273,31 @@ func (meta *CertMetaData) apiServerAltName(certList *[]Config) {
 	(*certList)[APIserverCert].AltNames.DNSNames[svcDNS] = svcDNS
 	(*certList)[APIserverCert].AltNames.DNSNames[meta.NodeName] = meta.NodeName
 
-	for _, ip := range meta.APIServer.IPs {
-		(*certList)[APIserverCert].AltNames.IPs[ip.String()] = ip
+	logger.Info("apiserver Domains : %v", (*certList)[APIserverCert].AltNames)
+
+	for _, ip := range meta.APIServerIPs.IPs {
+		(*certList)[APIserverCert].AltIPs.IPs[ip.String()] = ip
 	}
-	logger.Info("apiserver altNames : %v", (*certList)[APIserverCert].AltNames)
+	logger.Info("apiserver IPs : %v", (*certList)[APIserverCert].AltIPs)
 }
 
-func (meta *CertMetaData) etcdAltAndCommonName(certList *[]Config) {
-	altname := AltNames{
-		DNSNames: map[string]string{
-			"localhost":   "localhost",
-			meta.NodeName: meta.NodeName,
-		},
-		IPs: map[string]net.IP{
-			net.IPv4(127, 0, 0, 1).String():         net.IPv4(127, 0, 0, 1),
-			net.ParseIP(meta.NodeIP).To4().String(): net.ParseIP(meta.NodeIP).To4(),
-			net.IPv6loopback.String():               net.IPv6loopback,
-		},
+func (meta *CertMetaData) etcdServerNameAndIP(certList *[]Config) {
+	for _, etcdDns := range meta.EtcdServerNames.DNSNames {
+		(*certList)[EtcdServerCert].AltNames.DNSNames[etcdDns] = etcdDns
+		(*certList)[EtcdPeerCert].AltNames.DNSNames[etcdDns] = etcdDns
 	}
-	(*certList)[EtcdServerCert].CommonName = meta.NodeName
-	(*certList)[EtcdServerCert].AltNames = altname
-	(*certList)[EtcdPeerCert].CommonName = meta.NodeName
-	(*certList)[EtcdPeerCert].AltNames = altname
 
-	logger.Info("Etcd altnames : %v, commonName : %s", (*certList)[EtcdPeerCert].AltNames, (*certList)[EtcdPeerCert].CommonName)
+	for _, ip := range meta.EtcdServerIPs.IPs {
+		(*certList)[EtcdServerCert].AltIPs.IPs[ip.String()] = ip
+		(*certList)[EtcdPeerCert].AltIPs.IPs[ip.String()] = ip
+	}
+
+	////修改 CommonName 为节点名
+	//(*certList)[EtcdServerCert].CommonName = meta.NodeName
+	//(*certList)[EtcdPeerCert].CommonName = meta.NodeName
+
+	logger.Info("Etcd Domains : %v, commonName : %s", (*certList)[EtcdPeerCert].AltNames, (*certList)[EtcdPeerCert].CommonName)
+	logger.Info("Etcd IPs : %v, commonName : %s", (*certList)[EtcdPeerCert].AltIPs, (*certList)[EtcdPeerCert].CommonName)
 }
 
 // create sa.key sa.pub for service Account
@@ -268,8 +326,8 @@ func (meta *CertMetaData) generatorServiceAccountKeyPaire() error {
 func (meta *CertMetaData) GenerateAll() error {
 	cas := CaList(meta.CertPath, meta.CertEtcdPath)
 	certs := List(meta.CertPath, meta.CertEtcdPath)
-	meta.apiServerAltName(&certs)
-	meta.etcdAltAndCommonName(&certs)
+	meta.apiServerNameAndIP(&certs)
+	meta.etcdServerNameAndIP(&certs)
 	_ = meta.generatorServiceAccountKeyPaire()
 
 	CACerts := map[string]*x509.Certificate{}
@@ -279,6 +337,7 @@ func (meta *CertMetaData) GenerateAll() error {
 		if err != nil {
 			return err
 		}
+
 		CACerts[ca.CommonName] = caCert
 		CAKeys[ca.CommonName] = caKey
 
