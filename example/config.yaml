@@ -3,13 +3,11 @@ certEtcdPath: "/etc/kubernetes/pki/etcd"
 kubeConfigPath: "/etc/kubernetes/"
 apiServerAltNames:
   - apiserver.k8s.local
-apiServerAltIps:
   - 10.88.88.88
 controlPlaneEndpoint: "https://apiserver.k8s.local:6443"
 serviceCIDR: "172.31.0.0/16"
 etcdServerAltNames:
   - etcd.k8s.local
-etcdServerAltIps:
   - 10.88.88.99
 nodeName: "vm-1-4-centos"
 nodeIP: "10.0.1.4"

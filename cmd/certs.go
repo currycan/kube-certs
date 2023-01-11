@@ -14,15 +14,13 @@ import (
 )
 
 type Flag struct {
-	AltNames             []string
-	AltIPs               []string
+	APIServerAltNames    []string
 	NodeName             string
 	ServiceCIDR          string
 	NodeIP               string
 	DNSDomain            string
 	CertPath             string
 	EtcdAltNames         []string
-	EtcdAltIPs           []string
 	CertEtcdPath         string
 	KubeConfigPath       string
 	CertConfig           cert.Config
@@ -42,7 +40,7 @@ var certsCmd = &cobra.Command{
 			Path:     config.CertPath,
 			BaseName: "ca",
 		}
-		certs.GenerateCert(config.CertPath, config.CertEtcdPath, config.AltNames, config.AltIPs, config.NodeIP, config.NodeName, config.ServiceCIDR, config.DNSDomain, config.EtcdAltNames, config.EtcdAltIPs)
+		certs.GenerateCert(config.CertPath, config.CertEtcdPath, config.APIServerAltNames, config.NodeIP, config.NodeName, config.ServiceCIDR, config.DNSDomain, config.EtcdAltNames)
 		err := certs.CreateJoinControlPlaneKubeConfigFiles(config.KubeConfigPath, certConfig, config.NodeName, config.ControlPlaneEndpoint, config.ClusterName)
 		if err != nil {
 			logger.Error("generator kubeconfig failed %s", err)
@@ -60,13 +58,11 @@ func init() {
 	certsCmd.Flags().StringVar(&config.NodeIP, "node-ip", "", "like 10.88.88.1")
 	certsCmd.Flags().StringVar(&config.ServiceCIDR, "service-cidr", "", "like 172.31.0.0/16")
 	certsCmd.Flags().StringVar(&config.DNSDomain, "dns-domain", "cluster.local", "cluster dns domain")
-	certsCmd.Flags().StringSliceVar(&config.AltNames, "apiserver-alt-names", []string{}, "like example.com")
-	certsCmd.Flags().StringSliceVar(&config.AltIPs, "apiserver-alt-ips", []string{}, "like 10.88.88.88")
+	certsCmd.Flags().StringSliceVar(&config.APIServerAltNames, "apiserver-alt-names", []string{}, "like example.com or 10.88.88.88")
 	certsCmd.Flags().StringVar(&config.CertPath, "cert-path", "/etc/kubernetes/pki", "kubernetes cert file path")
 
 	// etcd certs
-	certsCmd.Flags().StringSliceVar(&config.EtcdAltNames, "etcd-alt-names", []string{}, "like example.com")
-	certsCmd.Flags().StringSliceVar(&config.EtcdAltIPs, "etcd-alt-ips", []string{}, "like 10.88.88.88")
+	certsCmd.Flags().StringSliceVar(&config.EtcdAltNames, "etcd-alt-names", []string{}, "like example.com or 10.88.88.99")
 	certsCmd.Flags().StringVar(&config.CertEtcdPath, "cert-etcd-path", "/etc/kubernetes/pki/etcd", "kubernetes etcd cert file path")
 
 	// kubernetes kubeconfig

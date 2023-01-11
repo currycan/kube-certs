@@ -45,7 +45,6 @@ type Config struct {
 	Organization []string
 	Year         time.Duration
 	AltNames     AltNames
-	AltIPs       AltIPs
 	Usages       []x509.ExtKeyUsage
 }
 
@@ -54,10 +53,7 @@ type Config struct {
 // be passed directly to the x509.Certificate object.
 type AltNames struct {
 	DNSNames map[string]string
-}
-
-type AltIPs struct {
-	IPs map[string]net.IP
+	IPs      map[string]net.IP
 }
 
 // NewPrivateKey creates an RSA private key
@@ -180,7 +176,7 @@ func NewSignedCert(cfg Config, key crypto.Signer, caCert *x509.Certificate, caKe
 	for _, v := range cfg.AltNames.DNSNames {
 		dnsNames = append(dnsNames, v)
 	}
-	for _, v := range cfg.AltIPs.IPs {
+	for _, v := range cfg.AltNames.IPs {
 		ips = append(ips, v)
 	}
 	certTmpl := x509.Certificate{
