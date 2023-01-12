@@ -40,7 +40,8 @@ var certsCmd = &cobra.Command{
 			Path:     config.CertPath,
 			BaseName: "ca",
 		}
-		certs.GenerateCert(config.CertPath, config.CertEtcdPath, config.APIServerAltNames, config.NodeIP, config.NodeName, config.ServiceCIDR, config.DNSDomain, config.EtcdAltNames)
+
+		certs.GenerateCert(config.CertPath, config.CertEtcdPath, config.APIServerAltNames, config.NodeIP, config.NodeName, config.ServiceCIDR, config.DNSDomain, config.APIServerAltNames)
 		err := certs.CreateJoinControlPlaneKubeConfigFiles(config.KubeConfigPath, certConfig, config.NodeName, config.ControlPlaneEndpoint, config.ClusterName)
 		if err != nil {
 			logger.Error("generator kubeconfig failed %s", err)

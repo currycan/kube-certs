@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/currycan/kube-certs/pkg/logger"
 )
@@ -197,7 +198,7 @@ const (
 )
 
 // apiServerIPAndDomains = MasterIP + VIP + CertSANS 暂时只有apiserver, 记得把cluster.local后缀加到apiServerIPAndDOmas里先
-func NewCertMetaData(certPATH, certEtcdPATH string, apiServerIPAndDomains []string, SvcCIDR, nodeName, nodeIP, DNSDomain string, etcdServerIPsAndDomains []string) (*CertMetaData, error) {
+func NewCertMetaData(certPATH, certEtcdPATH string, apiServerIPAndDomains []string, nodeIP, nodeName, SvcCIDR, DNSDomain string, etcdServerIPsAndDomains []string) (*CertMetaData, error) {
 	data := &CertMetaData{}
 	data.CertPath = certPATH
 	data.CertEtcdPath = certEtcdPATH
@@ -215,18 +216,23 @@ func NewCertMetaData(certPATH, certEtcdPATH string, apiServerIPAndDomains []stri
 	data.EtcdServer.IPs = make(map[string]net.IP)
 
 	//kubernetes
+	fmt.Printf("apiServerIPAndDomains: %T, %v\n", apiServerIPAndDomains, apiServerIPAndDomains)
 	for _, altName := range apiServerIPAndDomains {
-		ip := net.ParseIP(altName)
+		fmt.Printf("altName: %T, %v\n", altName, altName)
+		ip := net.ParseIP(strings.TrimSpace(altName))
+		fmt.Println("ip:", ip)
 		if ip != nil {
 			data.APIServer.IPs[ip.String()] = ip
+			fmt.Println("data.APIServer.IPs:", data.APIServer.IPs)
 			continue
 		}
 		data.APIServer.DNSNames[altName] = altName
+		fmt.Println("data.APIServer.DNSNames:", data.APIServer.DNSNames)
 	}
 
 	//etcd
 	for _, altName := range etcdServerIPsAndDomains {
-		ip := net.ParseIP(altName)
+		ip := net.ParseIP(strings.TrimSpace(altName))
 		if ip != nil {
 			data.EtcdServer.IPs[ip.String()] = ip
 			continue
@@ -234,7 +240,7 @@ func NewCertMetaData(certPATH, certEtcdPATH string, apiServerIPAndDomains []stri
 		data.EtcdServer.DNSNames[altName] = altName
 	}
 
-	if ip := net.ParseIP(nodeIP); ip != nil {
+	if ip := net.ParseIP(strings.TrimSpace(nodeIP)); ip != nil {
 		data.APIServer.IPs[ip.String()] = ip
 		data.EtcdServer.IPs[ip.String()] = ip
 	}
@@ -252,7 +258,7 @@ func (meta *CertMetaData) apiServerNameAndIP(certList *[]Config) {
 
 	svcDNS := fmt.Sprintf("kubernetes.default.svc.%s", meta.DNSDomain)
 	(*certList)[APIserverCert].AltNames.DNSNames[svcDNS] = svcDNS
-	ip := net.ParseIP(meta.NodeName)
+	ip := net.ParseIP(strings.TrimSpace(meta.NodeName))
 	if ip == nil {
 		(*certList)[APIserverCert].AltNames.DNSNames[meta.NodeName] = meta.NodeName
 	}
@@ -266,7 +272,7 @@ func (meta *CertMetaData) apiServerNameAndIP(certList *[]Config) {
 func (meta *CertMetaData) etcdServerNameAndIP(certList *[]Config) {
 	for _, etcdDns := range meta.EtcdServer.DNSNames {
 		(*certList)[EtcdServerCert].AltNames.DNSNames[etcdDns] = etcdDns
-		ip := net.ParseIP(meta.NodeName)
+		ip := net.ParseIP(strings.TrimSpace(meta.NodeName))
 		if ip == nil {
 			(*certList)[APIserverCert].AltNames.DNSNames[meta.NodeName] = meta.NodeName
 		}

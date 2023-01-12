@@ -20,6 +20,8 @@ import (
 
 	certutil "k8s.io/client-go/util/cert"
 	"k8s.io/client-go/util/keyutil"
+
+	"github.com/currycan/kube-certs/pkg/logger"
 )
 
 const (
@@ -294,4 +296,17 @@ func pathForCert(pkiPath, name string) string {
 
 func pathForKey(pkiPath, name string) string {
 	return filepath.Join(pkiPath, fmt.Sprintf("%s.key", name))
+}
+
+// GenerateCert generate all cert.
+func GenerateCert(certPATH, certEtcdPATH string, apiServerIPAndDomains []string, hostIP, hostName, serviceCIRD, DNSDomain string, etcdServerIPsAndDomains []string) {
+	certConfig, err := NewCertMetaData(certPATH, certEtcdPATH, apiServerIPAndDomains, hostIP, hostName, serviceCIRD, DNSDomain, etcdServerIPsAndDomains)
+	if err != nil {
+		logger.Error("generator cert config failed %s", err)
+		os.Exit(-1)
+	}
+	err = certConfig.GenerateAll()
+	if err != nil {
+		logger.Error("GenerateAll err %s", err)
+	}
 }

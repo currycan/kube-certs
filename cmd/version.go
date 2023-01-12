@@ -7,9 +7,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/currycan/kube-certs/pkg/version"
-
 	"github.com/spf13/cobra"
+
+	"github.com/currycan/kube-certs/pkg/version"
 )
 
 var shortPrint bool

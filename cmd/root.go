@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/currycan/kube-certs/certs"
 	"github.com/currycan/kube-certs/core"
 	"github.com/currycan/kube-certs/pkg/logger"
-
-	"github.com/spf13/cobra"
 )
 
 var (
