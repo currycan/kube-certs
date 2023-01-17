@@ -216,18 +216,13 @@ func NewCertMetaData(certPATH, certEtcdPATH string, apiServerIPAndDomains []stri
 	data.EtcdServer.IPs = make(map[string]net.IP)
 
 	//kubernetes
-	fmt.Printf("apiServerIPAndDomains: %T, %v\n", apiServerIPAndDomains, apiServerIPAndDomains)
 	for _, altName := range apiServerIPAndDomains {
-		fmt.Printf("altName: %T, %v\n", altName, altName)
 		ip := net.ParseIP(strings.TrimSpace(altName))
-		fmt.Println("ip:", ip)
 		if ip != nil {
 			data.APIServer.IPs[ip.String()] = ip
-			fmt.Println("data.APIServer.IPs:", data.APIServer.IPs)
 			continue
 		}
 		data.APIServer.DNSNames[altName] = altName
-		fmt.Println("data.APIServer.DNSNames:", data.APIServer.DNSNames)
 	}
 
 	//etcd
